@@ -1,78 +1,65 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract Appointment {
-    // Struct for storing Appointment data
-    struct AppointmentData {
+contract Doctor {
+    struct DoctorData {
         uint id;
-        uint doctorId;
-        uint patientId;
-        string doctorName;
-        string patientName;
-        string doctorContactNum;
-        string patientContactNum;
-        uint scheduledDateTime;  // Unix timestamp
-        string status;  // Status can be 'pending', 'confirmed', 'completed', etc.
-        string remarks; // Any notes or remarks
-        bool isActive; // Flag to mark if appointment is active or deleted
+        string name;
+        string contactNum;
+        string email;
+        uint clinicId;
+        string clinicName;
+        uint countPending;
+        uint countConfirmed;
+        uint countComplete;
+        bool isActive; // Flag to mark if doctor is active or deleted
     }
 
-    // Mappings to store appointments by ID
-    mapping(uint => AppointmentData) public appointments;
-    uint public appointmentCount;
+    mapping(uint => DoctorData) public doctors;
+    uint public doctorCount;
 
-    // Events to log appointment creation, updates, and deletions
-    event AppointmentCreated(uint appointmentId);
-    event AppointmentUpdated(uint appointmentId);
-    event AppointmentDeleted(uint appointmentId);
+    event DoctorCreated(uint doctorId);
+    event DoctorUpdated(uint doctorId);
+    event DoctorDeleted(uint doctorId);
 
-    // Function to create an appointment
-    function createAppointment(
-        uint _doctorId, uint _patientId, 
-        string memory _doctorName, string memory _patientName,
-        string memory _doctorContactNum, string memory _patientContactNum,
-        uint _scheduledDateTime, string memory _status, string memory _remarks
+    function createDoctor(
+        string memory _name, string memory _contactNum, string memory _email,
+        uint _clinicId, string memory _clinicName
     ) public {
-        appointmentCount++;
-        appointments[appointmentCount] = AppointmentData(
-            appointmentCount, _doctorId, _patientId, _doctorName, _patientName,
-            _doctorContactNum, _patientContactNum, _scheduledDateTime, _status,
-            _remarks, true
+        doctorCount++;
+        doctors[doctorCount] = DoctorData(
+            doctorCount, _name, _contactNum, _email, _clinicId,
+            _clinicName, 0, 0, 0, true
         );
-        emit AppointmentCreated(appointmentCount);
+        emit DoctorCreated(doctorCount);
     }
 
-    // Function to fetch appointment details by ID
-    function getAppointment(uint _id) public view returns (AppointmentData memory) {
-        require(_id > 0 && _id <= appointmentCount, "Invalid appointment ID");
-        return appointments[_id];
+    function getDoctor(uint _id) public view returns (DoctorData memory) {
+        require(_id > 0 && _id <= doctorCount, "Invalid doctor ID");
+        return doctors[_id];
     }
 
-    // Function to update an appointment
-    function updateAppointment(
-        uint _id, uint _scheduledDateTime, string memory _status, string memory _remarks
-    ) public {
-        require(_id > 0 && _id <= appointmentCount, "Invalid appointment ID");
-        AppointmentData storage appointment = appointments[_id];
-        require(appointment.isActive, "Appointment is inactive or deleted");
+    // Update doctor details
+    function updateDoctor(uint _id, string memory _name, string memory _contactNum, string memory _email) public {
+        require(_id > 0 && _id <= doctorCount, "Invalid doctor ID");
+        DoctorData storage doc = doctors[_id];
+        require(doc.isActive, "Doctor is inactive or deleted");
 
-        // Update appointment details
-        appointment.scheduledDateTime = _scheduledDateTime;
-        appointment.status = _status;
-        appointment.remarks = _remarks;
+        doc.name = _name;
+        doc.contactNum = _contactNum;
+        doc.email = _email;
 
-        emit AppointmentUpdated(_id);
+        emit DoctorUpdated(_id);
     }
 
-    // Function to delete an appointment (mark it as inactive)
-    function deleteAppointment(uint _id) public {
-        require(_id > 0 && _id <= appointmentCount, "Invalid appointment ID");
-        AppointmentData storage appointment = appointments[_id];
-        require(appointment.isActive, "Appointment is already deleted");
+    // Delete doctor (mark as inactive)
+    function deleteDoctor(uint _id) public {
+        require(_id > 0 && _id <= doctorCount, "Invalid doctor ID");
+        DoctorData storage doc = doctors[_id];
+        require(doc.isActive, "Doctor is already deleted");
 
-        // Mark the appointment as inactive
-        appointment.isActive = false;
+        doc.isActive = false;
 
-        emit AppointmentDeleted(_id);
+        emit DoctorDeleted(_id);
     }
 }
