@@ -16,12 +16,15 @@ contract Visit {
         string patientName;
         string medInfo;
         string doctorRemarks;
+        bool isActive; // Flag to check if the visit is active or deleted
     }
 
     mapping(uint => VisitData) public visits;
     uint public visitCount;
 
     event VisitCreated(uint visitId, uint clinicId, uint patientId, uint visitDateTime);
+    event VisitUpdated(uint visitId);
+    event VisitDeleted(uint visitId);
 
     function createVisit(
         uint _clinicId, uint _patientId, uint _visitDateTime,
@@ -31,7 +34,7 @@ contract Visit {
         visitCount++;
         visits[visitCount] = VisitData(
             visitCount, _visitDateTime, _visitType, _clinicId, _patientId,
-            _clinicName, _patientName, _medInfo, _doctorRemarks
+            _clinicName, _patientName, _medInfo, _doctorRemarks, true
         );
         emit VisitCreated(visitCount, _clinicId, _patientId, _visitDateTime);
     }
@@ -40,4 +43,36 @@ contract Visit {
         require(_id > 0 && _id <= visitCount, "Invalid visit ID");
         return visits[_id];
     }
+
+    // Update an existing visit
+    function updateVisit(
+        uint _id, uint _visitDateTime, string memory _visitType,
+        string memory _clinicName, string memory _patientName,
+        string memory _medInfo, string memory _doctorRemarks
+    ) public {
+        require(_id > 0 && _id <= visitCount, "Invalid visit ID");
+        VisitData storage visit = visits[_id];
+        require(visit.isActive, "Visit is inactive or deleted");
+
+        visit.visitDateTime = _visitDateTime;
+        visit.visitType = _visitType;
+        visit.clinicName = _clinicName;
+        visit.patientName = _patientName;
+        visit.medInfo = _medInfo;
+        visit.doctorRemarks = _doctorRemarks;
+
+        emit VisitUpdated(_id);
+    }
+
+    // Delete a visit (mark it as inactive)
+    function deleteVisit(uint _id) public {
+        require(_id > 0 && _id <= visitCount, "Invalid visit ID");
+        VisitData storage visit = visits[_id];
+        require(visit.isActive, "Visit is already deleted");
+
+        visit.isActive = false;
+
+        emit VisitDeleted(_id);
+    }
 }
+
